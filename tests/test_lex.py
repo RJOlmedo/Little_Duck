@@ -56,7 +56,7 @@ def test_arithmetic_expressions():
 
 # Prueba 3: Literales de tipo flotante y cadenas
 def test_floats_and_strings():
-    data = 'var y : float; y = 4.56; print("Hello!");'
+    data = 'var y : float; y = 4.56; print("Pancho!");'
     tokens = tokenize(data)
     assert_token(tokens[0], 'VAR', 'var')
     assert_token(tokens[1], 'ID', 'y')
@@ -69,13 +69,13 @@ def test_floats_and_strings():
     assert_token(tokens[8], 'SEMICOLON', ';')
     assert_token(tokens[9], 'PRINT', 'print')
     assert_token(tokens[10], 'LPAREN', '(')
-    assert_token(tokens[11], 'CTE_STRING', 'Hello!')
+    assert_token(tokens[11], 'CTE_STRING', 'Pancho!')
     assert_token(tokens[12], 'RPAREN', ')')
     assert_token(tokens[13], 'SEMICOLON', ';')
 
 # Prueba 4: Estructuras condicionales
 def test_conditionals():
-    data = 'if (x != 5) { print("Not five"); } else { print("Is five"); }'
+    data = 'if (x != 5) { print("No da 5"); } else { print("Da 5"); }'
     tokens = tokenize(data)
     assert_token(tokens[0], 'IF', 'if')
     assert_token(tokens[1], 'LPAREN', '(')
@@ -86,7 +86,7 @@ def test_conditionals():
     assert_token(tokens[6], 'LBRACE', '{')
     assert_token(tokens[7], 'PRINT', 'print')
     assert_token(tokens[8], 'LPAREN', '(')
-    assert_token(tokens[9], 'CTE_STRING', 'Not five')
+    assert_token(tokens[9], 'CTE_STRING', 'No da 5')
     assert_token(tokens[10], 'RPAREN', ')')
     assert_token(tokens[11], 'SEMICOLON', ';')
     assert_token(tokens[12], 'RBRACE', '}')
@@ -94,7 +94,7 @@ def test_conditionals():
     assert_token(tokens[14], 'LBRACE', '{')
     assert_token(tokens[15], 'PRINT', 'print')
     assert_token(tokens[16], 'LPAREN', '(')
-    assert_token(tokens[17], 'CTE_STRING', 'Is five')
+    assert_token(tokens[17], 'CTE_STRING', 'Da 5')
     assert_token(tokens[18], 'RPAREN', ')')
     assert_token(tokens[19], 'SEMICOLON', ';')
     assert_token(tokens[20], 'RBRACE', '}')

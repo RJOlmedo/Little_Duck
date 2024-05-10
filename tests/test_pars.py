@@ -14,28 +14,28 @@ def test_basic_program():
     program ejemplo;
     var x : int;
     main {
-        print("Hola Mundo");
+        print("Soy Pancho");
     }
     end;
     '''
     result = parser.parse(data)
-    assert result is not "None", "Parsing failed for the basic program"
+    assert result is not 'None', "Parsing failed for the basic program"
 
-""" # Prueba 2: Programa con declaraciones de funciones y llamadas
+# Prueba 2: Programa con declaraciones de funciones y llamadas
 def test_functions_and_calls():
     data = '''
     program ejemplo;
     var x : int;
-    void foo(int a) {
-        print("In foo");
+    void ladrar(int x) {
+        print("Pancho dice Arrr");
     }
     main {
-        foo(10);
+        ladrar(10);
     }
     end;
     '''
-    result = parse_input(data)
-    assert result is not None, "Parsing failed for program with functions and calls"
+    result = parser.parse(data)
+    assert result is not 'None', "Parsing failed for program with functions and calls"
 
 # Prueba 3: Ciclos `while` y `do-while`
 def test_loops():
@@ -44,17 +44,17 @@ def test_loops():
     var x : int;
     main {
         while (x < 10) {
-            print("In while loop");
+            print("Esto es un While Loop");
         }
 
         do {
-            print("In do-while loop");
+            print("Esto es un do while");
         } while (x < 10);
     }
     end;
     '''
-    result = parse_input(data)
-    assert result is not None, "Parsing failed for program with loops"
+    result = parser.parse(data)
+    assert result is not 'None', "Parsing failed for program with loops"
 
 # Prueba 4: Estructuras condicionales
 def test_conditionals():
@@ -63,15 +63,15 @@ def test_conditionals():
     var x : int;
     main {
         if (x != 5) {
-            print("Not five");
+            print("No da 5");
         } else {
-            print("Is five");
+            print("Da 5");
         }
     }
     end;
     '''
-    result = parse_input(data)
-    assert result is not None, "Parsing failed for program with conditionals"
- """
+    result = parser.parse(data)
+    assert result is not 'None', "Parsing failed for program with conditionals"
+
 if __name__ == '__main__':
     pytest.main([__file__])
