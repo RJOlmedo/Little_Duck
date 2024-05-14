@@ -72,22 +72,3 @@ def t_error(t):
 
 lexer = lex.lex()
 
-# Prueba del lexer
-if __name__ == '__main__':
-    data = '''
-    program ejemplo;
-    var x : int, y : float;
-    main {
-        print("Hola Mundo");
-        if (x < 10) {
-            print("Hola Mundo");
-        }
-    }
-    end
-    '''
-    lexer.input(data)
-    while True:
-        tok = lexer.token()
-        if not tok:
-            break
-        print(tok)
