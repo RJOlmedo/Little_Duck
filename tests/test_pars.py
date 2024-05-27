@@ -5,10 +5,16 @@ import pytest
 # Añade la carpeta raíz (un nivel arriba) al `sys.path`
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Importa el parser correctamente ahora
 from little_duck_pars import parser, ASTNode
 
-# Prueba 1: Programa básico con declaración de variables y `main`
+def assert_ast_node(node, expected_type, expected_value=None, expected_children=None):
+    assert node.type == expected_type
+    assert node.value == expected_value
+    if expected_children is not None:
+        assert len(node.children) == len(expected_children)
+        for child, expected_child in zip(node.children, expected_children):
+            assert_ast_node(child, expected_child.type, expected_child.value, expected_child.children)
+
 def test_basic_program():
     data = '''
     program ejemplo;
@@ -19,16 +25,15 @@ def test_basic_program():
     end;
     '''
     result = parser.parse(data)
-    
-    # Estructura esperada del AST
+
     expected_ast = ASTNode('Programa', [
-        ASTNode('VARS', [
+        ASTNode('Vars', [
             ASTNode('ListaVars', [
                 ASTNode('ID', value='x')
             ]),
             ASTNode('TYPE', value='int')
         ]),
-        ASTNode('FUNCS', value='epsilon'),
+        ASTNode('Funcoes', value='epsilon'),
         ASTNode('ID', value='main'),
         ASTNode('Body', [
             ASTNode('Statements', [
@@ -40,9 +45,9 @@ def test_basic_program():
         ]),
         ASTNode('ID', value='end')
     ])
-    assert result is not expected_ast, "Parsing failed for the basic program"
 
-# Prueba 2: Programa con declaraciones de funciones y llamadas
+    assert_ast_node(result, expected_ast.type, expected_ast.value, expected_ast.children)
+
 def test_functions_and_calls():
     data = '''
     program ejemplo;
@@ -56,21 +61,19 @@ def test_functions_and_calls():
     end;
     '''
     result = parser.parse(data)
-    
+
     expected_ast = ASTNode('Programa', [
-        ASTNode('VARS', [
+        ASTNode('Vars', [
             ASTNode('ListaVars', [
                 ASTNode('ID', value='x')
             ]),
             ASTNode('TYPE', value='int')
         ]),
-        ASTNode('FUNCS', [
+        ASTNode('Funcoes', [
             ASTNode('Funcion', [
-                ASTNode('TipoFunc', value='void'),
                 ASTNode('ID', value='ladrar'),
                 ASTNode('Parametros', [
-                    ASTNode('ID', value='x'),
-                    ASTNode('TYPE', value='int')
+                    ASTNode('ID', value='x', children=[ASTNode('TYPE', value='int')])
                 ]),
                 ASTNode('Body', [
                     ASTNode('Statements', [
@@ -81,7 +84,7 @@ def test_functions_and_calls():
                     ])
                 ])
             ]),
-            ASTNode('FUNCS', value='epsilon')
+            ASTNode('Funcoes', value='epsilon')
         ]),
         ASTNode('ID', value='main'),
         ASTNode('Body', [
@@ -98,9 +101,8 @@ def test_functions_and_calls():
         ASTNode('ID', value='end')
     ])
 
-    assert result is not expected_ast, "Parsing failed for the basic program"
+    assert_ast_node(result, expected_ast.type, expected_ast.value, expected_ast.children)
 
-# Prueba 3: Ciclos `while` y `do-while`
 def test_loops():
     data = '''
     program ejemplo;
@@ -119,13 +121,13 @@ def test_loops():
     result = parser.parse(data)
 
     expected_ast = ASTNode('Programa', [
-        ASTNode('VARS', [
+        ASTNode('Vars', [
             ASTNode('ListaVars', [
                 ASTNode('ID', value='x')
             ]),
             ASTNode('TYPE', value='int')
         ]),
-        ASTNode('FUNCS', value='epsilon'),
+        ASTNode('Funcoes', value='epsilon'),
         ASTNode('ID', value='main'),
         ASTNode('Body', [
             ASTNode('Statements', [
@@ -167,9 +169,8 @@ def test_loops():
         ASTNode('ID', value='end')
     ])
 
-    assert result is not expected_ast, "Parsing failed for the basic program"
+    assert_ast_node(result, expected_ast.type, expected_ast.value, expected_ast.children)
 
-# Prueba 4: Estructuras condicionales
 def test_conditionals():
     data = '''
     program ejemplo;
@@ -180,19 +181,18 @@ def test_conditionals():
         } else {
             print("Da 5");
         }
-    }
     end;
     '''
     result = parser.parse(data)
 
     expected_ast = ASTNode('Programa', [
-        ASTNode('VARS', [
+        ASTNode('Vars', [
             ASTNode('ListaVars', [
                 ASTNode('ID', value='x')
             ]),
             ASTNode('TYPE', value='int')
         ]),
-        ASTNode('FUNCS', value='epsilon'),
+        ASTNode('Funcoes', value='epsilon'),
         ASTNode('ID', value='main'),
         ASTNode('Body', [
             ASTNode('Statements', [
@@ -225,7 +225,7 @@ def test_conditionals():
         ASTNode('ID', value='end')
     ])
 
-    assert result is not expected_ast, "Parsing failed for the basic program"
+    assert_ast_node(result, expected_ast.type, expected_ast.value, expected_ast.children)
 
 if __name__ == '__main__':
     pytest.main([__file__])

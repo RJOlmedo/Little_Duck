@@ -1,53 +1,49 @@
-# Definimos los tipos
-INT = 'int'
-FLOAT = 'float'
-STRING = 'string'
-BOOL = 'bool'
+class SemanticCube:
+    def __init__(self):
+        self.types = ['int', 'float', 'bool']
+        self.operations = ['+', '-', '*', '/', '&&', '||', '==', '!=', '>', '<', '>=', '<=', '=']
+        self.cube = self._create_cube()
 
-# Operadores
-ADD = '+'
-SUB = '-'
-MUL = '*'
-DIV = '/'
-LT = '<'
-GT = '>'
-EQ = '=='
-NE = '!='
+    def _create_cube(self):
+        cube = {}
+        for op in self.operations:
+            cube[op] = {}
+            for type1 in self.types:
+                cube[op][type1] = {}
+                for type2 in self.types:
+                    # Definir las reglas del cubo semántico aquí
+                    if op in ['+', '-', '*', '/']:
+                        if type1 == 'int' and type2 == 'int':
+                            cube[op][type1][type2] = 'int'
+                        elif type1 == 'float' or type2 == 'float':
+                            cube[op][type1][type2] = 'float'
+                        else:
+                            cube[op][type1][type2] = 'error'
+                    elif op in ['&&', '||']:
+                        if type1 == 'bool' and type2 == 'bool':
+                            cube[op][type1][type2] = 'bool'
+                        else:
+                            cube[op][type1][type2] = 'error'
+                    elif op in ['==', '!=', '>', '<', '>=', '<=']:
+                        if type1 == type2:
+                            cube[op][type1][type2] = 'bool'
+                        else:
+                            cube[op][type1][type2] = 'error'
 
-# Cubo Semántico: dict de dict de dicts, donde las llaves son (tipo1, operador, tipo2) y el valor es el tipo resultante o None si no es válido
-semantic_cube = {
-    INT: {
-        ADD: {INT: INT, FLOAT: FLOAT, STRING: None},
-        SUB: {INT: INT, FLOAT: FLOAT, STRING: None},
-        MUL: {INT: INT, FLOAT: FLOAT, STRING: None},
-        DIV: {INT: FLOAT, FLOAT: FLOAT, STRING: None},
-        LT: {INT: BOOL, FLOAT: BOOL, STRING: None},
-        GT: {INT: BOOL, FLOAT: BOOL, STRING: None},
-        EQ: {INT: BOOL, FLOAT: BOOL, STRING: None},
-        NE: {INT: BOOL, FLOAT: BOOL, STRING: None},
-    },
-    FLOAT: {
-        ADD: {INT: FLOAT, FLOAT: FLOAT, STRING: None},
-        SUB: {INT: FLOAT, FLOAT: FLOAT, STRING: None},
-        MUL: {INT: FLOAT, FLOAT: FLOAT, STRING: None},
-        DIV: {INT: FLOAT, FLOAT: FLOAT, STRING: None},
-        LT: {INT: BOOL, FLOAT: BOOL, STRING: None},
-        GT: {INT: BOOL, FLOAT: BOOL, STRING: None},
-        EQ: {INT: BOOL, FLOAT: BOOL, STRING: None},
-        NE: {INT: BOOL, FLOAT: BOOL, STRING: None},
-    },
-    STRING: {
-        ADD: {INT: None, FLOAT: None, STRING: STRING},
-        SUB: {INT: None, FLOAT: None, STRING: None},
-        MUL: {INT: None, FLOAT: None, STRING: None},
-        DIV: {INT: None, FLOAT: None, STRING: None},
-        LT: {INT: None, FLOAT: None, STRING: BOOL},
-        GT: {INT: None, FLOAT: None, STRING: BOOL},
-        EQ: {INT: None, FLOAT: None, STRING: BOOL},
-        NE: {INT: None, FLOAT: None, STRING: BOOL},
-    },
-}
+                    elif op == '=':
+                        if type1 == type2:
+                            cube[op][type1][type2] = type1
+                        elif type1 == 'float' and type2 == 'int':
+                            cube[op][type1][type2] = type1
+                        elif type1 == 'float' and type2 == 'bool':
+                            cube[op][type1][type2] = type2
+                            
+                        elif type1 == 'int' and type2 == 'bool':
+                            cube[op][type1][type2] = type2
+                        else:
+                            cube[op][type1][type2] = 'error'
+        return cube
 
-# Función para obtener el tipo resultante de una operación
-def get_result_type(left_type, operator, right_type):
-    return semantic_cube.get(left_type, {}).get(operator, {}).get(right_type, None)
+    def get_result_type(self, op, type1, type2):
+        return self.cube.get(op, {}).get(type1, {}).get(type2, 'error')
+    

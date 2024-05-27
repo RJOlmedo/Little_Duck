@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from semantic_cube import get_result_type, INT, FLOAT, STRING, BOOL, ADD, SUB, MUL, DIV, LT, GT, EQ, NE
 
+# Test del int y sus operaciones
 def test_int_operations():
     assert get_result_type(INT, ADD, INT) == INT
     assert get_result_type(INT, SUB, INT) == INT
@@ -17,6 +18,7 @@ def test_int_operations():
     assert get_result_type(INT, EQ, INT) == BOOL
     assert get_result_type(INT, NE, INT) == BOOL
 
+# Test del float y sus operaciones
 def test_float_operations():
     assert get_result_type(FLOAT, ADD, FLOAT) == FLOAT
     assert get_result_type(FLOAT, SUB, FLOAT) == FLOAT
@@ -27,12 +29,14 @@ def test_float_operations():
     assert get_result_type(FLOAT, EQ, FLOAT) == BOOL
     assert get_result_type(FLOAT, NE, FLOAT) == BOOL
 
+# Test del int con float
 def test_mixed_operations():
     assert get_result_type(INT, ADD, FLOAT) == FLOAT
     assert get_result_type(FLOAT, ADD, INT) == FLOAT
     assert get_result_type(INT, SUB, FLOAT) == FLOAT
     assert get_result_type(FLOAT, SUB, INT) == FLOAT
 
+# Test del string y sus operaciones
 def test_string_operations():
     assert get_result_type(STRING, ADD, STRING) == STRING
     assert get_result_type(STRING, LT, STRING) == BOOL
@@ -40,6 +44,7 @@ def test_string_operations():
     assert get_result_type(STRING, EQ, STRING) == BOOL
     assert get_result_type(STRING, NE, STRING) == BOOL
 
+# Probar mezcla de variables que no son validas entre si    
 def test_invalid_operations():
     assert get_result_type(INT, ADD, STRING) == None
     assert get_result_type(STRING, SUB, STRING) == None

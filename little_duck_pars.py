@@ -1,187 +1,310 @@
-from ply import yacc
+import ply.yacc as yacc
+from symbol_table import VariableTable
 from little_duck_lex import tokens
 
-class ASTNode:
-    def __init__(self, type, children=None, value=None):
-        self.type = type
-        self.children = children if children is not None else []
-        self.value = value
+variable_table = VariableTable()
 
-    def __repr__(self):
-        return f"ASTNode(type={self.type}, children={self.children}, value={self.value})"
+# Define precedence and associativity of operators
+precedence = (
+    ('left', 'PLUS', 'MINUS'),
+    ('left', 'TIMES', 'DIVIDE'),
+    ('left', 'LT', 'GT', 'NE')
+)
 
-def p_programa(p):
-    'Programa : PROGRAM ID SEMICOLON VARS FUNCS MAIN Body END SEMICOLON'
-    p[0] = ASTNode('Programa', [p[4], p[5], p[6], p[7]])
+# Grammar rules
+def p_program(p):
+    'program : PROGRAM ID SEMICOLON a_vars a_funcs MAIN body END'
+    pass
 
+def p_a_vars(p):
+    '''a_vars : empty
+              | vars'''
+    lista_variables = p[1]
+
+    for var in lista_variables:
+        nombre, tipo = var.split(':')
+        variable_table.add_variable(nombre, tipo)
+
+def p_a_funcs(p):
+    '''a_funcs : empty
+               | funcs b_funcs'''
+    pass
+
+def p_b_funcs(p):
+    '''b_funcs : funcs b_funcs
+                | funcs'''
+    pass
+
+#VARS MODULE 
 def p_vars(p):
-    '''VARS : VAR ListaVars COLON TYPE SEMICOLON
-            | epsilon'''
-    if len(p) == 6:
-        p[0] = ASTNode('VARS', [p[2], p[4]])
-    else:
-        p[0] = ASTNode('VARS', [], 'epsilon')
+    '''vars : VAR ID COLON type SEMICOLON list_vars
+    '''
+    list_vars = p[6]
+    p[0] = (f'{p[2]}:{p[4]}',*list_vars.split(','))
 
-def p_lista_vars(p):
-    '''ListaVars : ID COMMA ListaVars
-                 | ID'''
-    if len(p) == 4:
-        p[0] = ASTNode('ListaVars', [ASTNode('ID', value=p[1]), p[3]])
-    else:
-        p[0] = ASTNode('ListaVars', [ASTNode('ID', value=p[1])])
+def p_list_vars(p):
+    '''list_vars : empty
+                 | ID COLON type SEMICOLON list_vars
+    '''
+    if len(p) > 2:
+        if p[5] != None:
+            p[0]=f'{p[1]}:{p[3]},{p[5]}'
+        else:
+             p[0]=f'{p[1]}:{p[3]}'
+
+# def p_list_vars(p):
+#     '''list_vars : ID  list_id COLON type SEMICOLON list_vars
+#           | ID  list_id COLON type SEMICOLON
+#     '''
+#     variables_list = [p[1]]
+#     print(variables_list)
+#     if p[2] != None:
+#         variables_list.extend(p[2].split(','))
+    
+#     for element in variables_list:
+#         variable_table.add_variable(element,p[4])
+
+#     if len(p) == 7:
+#         if p[2] != None:
+#             p[0]=[p[1], p[2], *p[6]]
+#         else:
+#             p[0]=[p[1], *p[6]]
+
+#     else:
+#         if p[2] != None:
+#             vars_str = p[1]+','+p[2]
+#             # Dividir el string por comas para obtener cada par nombre:tipo
+#             pares = vars_str.split(',')
+#             # Extraer solo los nombres (parte antes de los dos puntos) y guardarlos en una lista
+#             vars_names = [par.split(':')[0] for par in pares]
+#             p[0]=vars_names
+#         else:
+#             p[0]=[p[1]]
+
+# def p_list_id(p):
+#     '''list_id : COMMA ID list_id
+#           | empty
+#     '''
+
+#     if len(p) == 4:
+#         if p[3] != None:
+#             p[0] = f'{p[2]},{p[3]}'
+#         else:
+#             p[0] = f'{p[2]}'
 
 def p_type(p):
-    '''TYPE : INT
-            | FLOAT
-            | STRING'''
-    p[0] = ASTNode('TYPE', value=p[1])
-
-def p_funcs(p):
-    '''FUNCS : Funcion FUNCS
-             | epsilon'''
-    if len(p) == 3:
-        p[0] = ASTNode('FUNCS', [p[1], p[2]])
-    else:
-        p[0] = ASTNode('FUNCS', [], 'epsilon')
-
-def p_funcion(p):
-    'Funcion : TipoFunc ID LPAREN Parametros RPAREN COLON Body'
-    p[0] = ASTNode('Funcion', [p[1], ASTNode('ID', value=p[2]), p[4], p[7]])
-
-def p_tipofunc(p):
-    '''TipoFunc : VOID
-                | TYPE'''
-    p[0] = ASTNode('TipoFunc', value=p[1])
-
-def p_parametros(p):
-    '''Parametros : ID COMMA Parametros
-                  | ID COLON TYPE
-                  | epsilon'''
-    if len(p) == 4:
-        p[0] = ASTNode('Parametros', [ASTNode('ID', value=p[1]), p[3]])
-    elif len(p) == 2:
-        p[0] = ASTNode('Parametros', [], 'epsilon')
-    else:
-        p[0] = ASTNode('Parametros', [ASTNode('ID', value=p[1]), p[3]])
+    '''type : INT
+            | FLOAT'''
+    p[0] = p[1]
 
 def p_body(p):
-    'Body : LBRACE Statements RBRACE'
-    p[0] = ASTNode('Body', [p[2]])
+    'body : LBRACE list_statements RBRACE'
+    pass
 
-def p_statements(p):
-    '''Statements : Statement Statements
-                  | epsilon'''
-    if len(p) == 3:
-        p[0] = ASTNode('Statements', [p[1], p[2]])
-    else:
-        p[0] = ASTNode('Statements', [], 'epsilon')
+def p_list_statements(p):
+    '''list_statements : statement body_rep
+                       | empty
+                       | statement'''
+    pass
 
 def p_statement(p):
-    '''Statement : ASSIGNMENT
-                 | CONDITION
-                 | CYCLE
-                 | F_Call
-                 | Print'''
-    p[0] = p[1]
+    '''statement : assign
+                 | condition
+                 | cycle
+                 | f_call
+                 | print_stmt'''
+    pass
 
-def p_assignment(p):
-    'ASSIGNMENT : ID ASSIGN Expresion SEMICOLON'
-    p[0] = ASTNode('ASSIGNMENT', [ASTNode('ID', value=p[1]), p[3]])
+def p_body_rep(p):
+    '''body_rep : statement body_rep
+                       | statement'''
+    pass
 
-def p_condition(p):
-    '''CONDITION : IF LPAREN Expresion RPAREN Body
-                 | IF LPAREN Expresion RPAREN Body ELSE Body'''
-    if len(p) == 6:
-        p[0] = ASTNode('CONDITION', [p[3], p[5]])
-    else:
-        p[0] = ASTNode('CONDITION', [p[3], p[5], p[7]])
+def p_print_stmt(p):
+    'print_stmt : PRINT LPAREN list_expresion RPAREN SEMICOLON'
+    pass
+
+def p_list_expresion(p):
+    '''list_expresion : expresion 
+                    | expresion COMMA list_expresion
+                    | CTE_STRING COMMA list_expresion'''
+    pass
+
+def p_assign(p):
+    'assign : ID add_operand EQUALS add_operador expresion SEMICOLON'
+    variable_table.add_assing()
+    pass
+
+def p_add_operand(p):
+    '''add_operand : '''
+    variable_table.add_operand(p[-1])
+
+def p_add_operador(p):
+    '''add_operador : '''
+    variable_table.append_pila_operador(p[-1])
 
 def p_cycle(p):
-    '''CYCLE : WHILE LPAREN Expresion RPAREN Body SEMICOLON
-             | DO Body WHILE LPAREN Expresion RPAREN SEMICOLON'''
-    if p[1] == 'while':
-        p[0] = ASTNode('CYCLE', [p[3], p[5]])
-    else:
-        p[0] = ASTNode('CYCLE', [p[2], p[5]])
+    'cycle : DO body WHILE LPAREN expresion RPAREN SEMICOLON'
+    pass
 
-def p_f_call(p):
-    'F_Call : ID LPAREN Expresiones RPAREN SEMICOLON'
-    p[0] = ASTNode('F_Call', [ASTNode('ID', value=p[1]), p[3]])
+def p_condition(p):
+    'condition : IF LPAREN expresion RPAREN add_gotof body else_part SEMICOLON'
+    variable_table.fill_goto(p[-3])
+    pass
 
-def p_expresiones(p):
-    '''Expresiones : Expresion COMMA Expresiones
-                   | Expresion
-                   | epsilon'''
-    if len(p) == 4:
-        p[0] = ASTNode('Expresiones', [p[1], p[3]])
-    elif len(p) == 2:
-        p[0] = p[1]
-    else:
-        p[0] = ASTNode('Expresiones', [], 'epsilon')
-
-def p_print(p):
-    'Print : PRINT LPAREN Expresiones RPAREN SEMICOLON'
-    p[0] = ASTNode('Print', [p[3]])
+def p_else_part(p):
+    '''else_part : ELSE body
+                 | empty'''
+    pass
 
 def p_expresion(p):
-    '''Expresion : Expresion NOTEQUALS Exp
-                 | Expresion LESS Exp
-                 | Expresion GREATER Exp
-                 | Exp'''
-    if len(p) == 4:
-        p[0] = ASTNode('Expresion', [p[1], ASTNode('Operator', value=p[2]), p[3]])
-    else:
-        p[0] = p[1]
+    '''expresion : exp comparar_exp exp
+                | exp'''
+    pass
+
+def p_comparar_exp(p):
+    '''comparar_exp : LT
+                    | GT
+                    | NE'''
+    variable_table.append_pila_operador(p[1])
 
 def p_exp(p):
-    '''Exp : Exp PLUS Term
-           | Exp MINUS Term
-           | Term'''
-    if len(p) == 4:
-        p[0] = ASTNode('Exp', [p[1], ASTNode('Operator', value=p[2]), p[3]])
-    else:
-        p[0] = p[1]
+    '''exp : termino add_termino 
+            | termino add_termino next_termino'''
+    pass
 
-def p_term(p):
-    '''Term : Term TIMES Factor
-            | Term DIVIDE Factor
-            | Factor'''
-    if len(p) == 4:
-        p[0] = ASTNode('Term', [p[1], ASTNode('Operator', value=p[2]), p[3]])
-    else:
-        p[0] = p[1]
+def p_add_termino(p):
+    '''add_termino : '''
+    variable_table.add_termino()
+
+def p_next_termino(p):
+    '''next_termino : sum_rest exp '''
+    pass
+
+def p_sum_rest(p):
+    '''sum_rest : PLUS
+                | MINUS'''
+    variable_table.append_pila_operador(p[1])
+    pass
+
+def p_termino(p):
+    '''termino : factor add_factor next_factor
+                | factor add_factor'''
+    pass
+
+def p_next_factor(p):
+    '''next_factor : mult_div termino'''
+    pass
+
+def p_mult_div(p):
+    '''mult_div : TIMES
+                | DIVIDE'''
+    variable_table.append_pila_operador(p[1])
+    pass
 
 def p_factor(p):
-    '''Factor : LPAREN Expresion RPAREN
-              | PLUS Subfactor
-              | MINUS Subfactor
-              | Subfactor'''
-    if len(p) == 4:
-        p[0] = p[2]
-    elif len(p) == 3:
-        p[0] = ASTNode('Factor', [ASTNode('Unary', value=p[1]), p[2]])
-    else:
-        p[0] = p[1]
+    '''factor : LPAREN expresion RPAREN
+                | id_cte'''
+            #   | sum_rest id_cte
+            #   | id_cte
+    pass
 
-def p_subfactor(p):
-    '''Subfactor : CTE
-                 | ID'''
-    p[0] = p[1]
+def p_add_factor(p):
+    '''add_factor : '''
+    variable_table.add_factor()
+
+def p_id_cte(p):
+    '''id_cte : ID push_var
+              | cte push_const'''
+    pass
+
+def p_push_const(p):
+    '''push_const : '''
+    variable_table.add_operand(p[-1],True)
+
+def p_push_var(p):
+    '''push_var : '''
+    variable_table.add_operand(p[-1])
 
 def p_cte(p):
-    '''CTE : CTE_FLOAT
-           | CTE_INT
-           | CTE_STRING'''
-    p[0] = ASTNode('CTE', value=p[1])
+    '''cte : CTE_INT
+           | CTE_FLOAT'''
+    p[0]=p[1]
 
-def p_epsilon(p):
-    'epsilon :'
-    p[0] = None
+def p_funcs(p):
+    'funcs : VOID ID LPAREN list_params RPAREN LBRACE var_no_var body RBRACE SEMICOLON'
+    pass
+
+def p_list_params(p):
+    '''list_params : empty
+                   | ID COLON type more_params'''
+    pass
+
+def p_more_params(p):
+    '''more_params : empty
+                   | COMMA ID COLON type more_params'''
+    pass
+
+def p_var_no_var(p):
+    '''var_no_var : empty
+                  | vars'''
+    pass
+
+def p_f_call(p):
+    'f_call : ID LPAREN RPAREN SEMICOLON'
+    pass
+
+def p_empty(p):
+    'empty :'
+    pass
 
 def p_error(p):
     if p:
-        print(f"Syntax error '{p.value}' on line {p.lineno}")
+        print(f"Syntax error at '{p.value}' (line {p.lineno})")
     else:
         print("Syntax error at EOF")
 
-parser = yacc.yacc(debug=True)
+# Build the parser
+parser = yacc.yacc()
+
+# Test the parser
+if __name__ == "__main__":
+    data = '''
+program MyProgram;
+var
+  number1: int;
+  number2: float;
+  x: int;
+  y: float;
+  z: int;
+  a:int;
+  b:int;
+
+
+main
+{
+
+  x = 10+2;
+  y = 5.5*3;
+  z = x;
+  if (a > 5) {
+    print(a);
+  }else{
+    print(a, b);
+  };
+  do{
+    print(x);
+  }while(x);
+
+}
+
+end
+    '''
+    
+parser.parse(data, tracking=True)
+print(variable_table.pila_operandos)
+print(variable_table.pila_operadores)
+print(variable_table.pila_tipos)
+print(variable_table.pila_saltos)
+print(variable_table.pila_cuadruplos)
+
