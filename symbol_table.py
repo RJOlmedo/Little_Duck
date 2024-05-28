@@ -113,7 +113,6 @@ class VariableTable:
     def add_termino(self):
             if self.pila_operadores:
                 op = self.pila_operadores[-1]
-                print(op)
                 if op == '+' or op == '-':
                     right_operand = self.pila_operandos.pop()
                     left_operand = self.pila_operandos.pop()
@@ -139,7 +138,42 @@ class VariableTable:
                         self.var_temp_float+= 1
                         self.pila_tipos.append(res_tipo)
                         self.pila_cuadruplos.append([operator, left_operand, right_operand, res_address ])
-    
+    def add_expresion(self):
+        if self.pila_operadores:
+            op = self.pila_operadores[-1]
+            if op == '>' or op == '<' or op == '!=':
+                    right_operand = self.pila_operandos.pop()
+                    left_operand = self.pila_operandos.pop()
+                    right_operand_tipo = self.pila_tipos.pop()
+                    left_operand_tipo = self.pila_tipos.pop()
+                    operator = self.pila_operadores.pop()
+
+                    res_tipo = self.semantic_cube.get_result_type(operator, left_operand_tipo, right_operand_tipo)
+
+                    if res_tipo == 'bool':
+                        self.var_temp_bool += 1
+                        res_address = self.var_temp_bool
+                        self.pila_operandos.append(res_address)
+                        self.pila_tipos.append(res_tipo)
+                        self.pila_cuadruplos.append([operator, left_operand, right_operand, res_address ])
+                    
+                    # elif res_tipo == 'int':
+                    #     res_address = self.var_temp_int
+                    #     self.pila_operandos.append(res_address)
+                    #     self.var_temp_int += 1
+                    #     self.pila_tipos.append(res_tipo)
+                    #     self.pila_cuadruplos.append([operator, left_operand, right_operand, res_address ])
+
+                    # elif res_tipo == 'float':
+                    #     res_address = self.var_temp_float
+                    #     self.pila_operandos.append(res_address)
+                    #     self.var_temp_float+= 1
+                    #     self.pila_tipos.append(res_tipo)
+                    #     self.pila_cuadruplos.append([operator, left_operand, right_operand, res_address ])
+                    else:
+                        raise ValueError(f"Invalid operation: {left_operand_tipo} {operator} {right_operand_tipo}")
+
+
     def add_assing(self):
         if self.pila_operadores:
             op = self.pila_operadores[-1]
@@ -158,35 +192,42 @@ class VariableTable:
 
                 else:
                     raise ValueError(f"Invalid operation: {left_operand_tipo} {operator} {right_operand_tipo}")
+                
+    def add_print(self, string = []):
+        if string == []:
+            right_operand = self.pila_operandos.pop()
+            right_operand_tipo = self.pila_tipos.pop()
 
+            self.pila_cuadruplos.append(['print', right_operand, None, None ])
+        else:
+            self.pila_cuadruplos.append(['print', string, None, None ])
+                
     
-    def add_start(self):
-        self.pila_saltos.append(len(self.pila_cuadruplos))
-
     def add_gotof(self):
         condition = self.pila_operandos.pop()
         condition_type = self.pila_tipos.pop()
+        
         if condition_type != 'bool':
-            raise TypeError(f"Expected 'bool' type for condition, got '{condition_type}'")
+            raise ValueError("Condition for if statement must be a boolean")
+        
         self.pila_cuadruplos.append(['GOTOF', condition, None, None])
         self.pila_saltos.append(len(self.pila_cuadruplos) - 1)
 
     def add_goto(self):
         self.pila_cuadruplos.append(['GOTO', None, None, None])
+        false_jump = self.pila_saltos.pop()
+
         self.pila_saltos.append(len(self.pila_cuadruplos) - 1)
+        self.pila_cuadruplos[false_jump][-1] = len(self.pila_cuadruplos)
 
-    def fill_gotof(self, index):
-        pending_gotof = self.pila_saltos.pop()
-        self.pila_cuadruplos[pending_gotof][3] = len(self.pila_cuadruplos)
+    def add_gotoFfill(self):
+        false_jump = self.pila_saltos.pop()
+        self.pila_cuadruplos[false_jump][-1] = len(self.pila_cuadruplos)
 
-    def fill_goto(self, index):
-        pending_goto = self.pila_saltos.pop()
-        self.pila_cuadruplos[pending_goto][3] = len(self.pila_cuadruplos)
+    def patch_else(self):
+        end_jump = self.pila_saltos.pop()
+        self.pila_cuadruplos[end_jump][-1] = len(self.pila_cuadruplos)
 
-    def add_gotot(self):
-        condition = self.pila_operandos.pop()
-        condition_type = self.pila_tipos.pop()
-        if condition_type != 'bool':
-            raise TypeError(f"Expected 'bool' type for condition, got '{condition_type}'")
-        start = self.pila_saltos.pop()
-        self.pila_cuadruplos.append(['GOTOT', condition, None, start])
+    def patch_if(self):
+        false_jump = self.pila_saltos.pop()
+        self.pila_cuadruplos[false_jump][-1] = len(self.pila_cuadruplos)

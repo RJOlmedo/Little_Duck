@@ -125,10 +125,19 @@ def p_print_stmt(p):
     pass
 
 def p_list_expresion(p):
-    '''list_expresion : expresion 
-                    | expresion COMMA list_expresion
-                    | CTE_STRING COMMA list_expresion'''
+    '''list_expresion : expresion addPrint
+                    | expresion addPrint COMMA list_expresion
+                    | CTE_STRING addPrintString
+                    | CTE_STRING addPrintString COMMA list_expresion'''
     pass
+
+def p_addPrint(p):
+    '''addPrint : '''
+    variable_table.add_print()
+
+def p_addPrintString(p):
+    '''addPrintString : '''
+    variable_table.add_print(string = p[-1])
 
 def p_assign(p):
     'assign : ID add_operand EQUALS add_operador expresion SEMICOLON'
@@ -148,19 +157,26 @@ def p_cycle(p):
     pass
 
 def p_condition(p):
-    'condition : IF LPAREN expresion RPAREN add_gotof body else_part SEMICOLON'
-    variable_table.fill_goto(p[-3])
-    pass
+    'condition : IF LPAREN expresion RPAREN gotof body else_part SEMICOLON'
+    variable_table.add_gotoFfill()
+
+def p_gotof(p):
+    '''gotof : '''
+    variable_table.add_gotof()
 
 def p_else_part(p):
-    '''else_part : ELSE body
+    '''else_part : ELSE goto body
                  | empty'''
     pass
+
+def p_goto(p):
+    '''goto : '''
+    variable_table.add_goto()
 
 def p_expresion(p):
     '''expresion : exp comparar_exp exp
                 | exp'''
-    pass
+    variable_table.add_expresion()
 
 def p_comparar_exp(p):
     '''comparar_exp : LT
@@ -267,44 +283,14 @@ def p_error(p):
 # Build the parser
 parser = yacc.yacc()
 
+# Read code from a text file
+with open('file.txt', 'r') as file:
+    data = file.read()
+
 # Test the parser
-if __name__ == "__main__":
-    data = '''
-program MyProgram;
-var
-  number1: int;
-  number2: float;
-  x: int;
-  y: float;
-  z: int;
-  a:int;
-  b:int;
-
-
-main
-{
-
-  x = 10+2;
-  y = 5.5*3;
-  z = x;
-  if (a > 5) {
-    print(a);
-  }else{
-    print(a, b);
-  };
-  do{
-    print(x);
-  }while(x);
-
-}
-
-end
-    '''
-    
 parser.parse(data, tracking=True)
 print(variable_table.pila_operandos)
 print(variable_table.pila_operadores)
 print(variable_table.pila_tipos)
 print(variable_table.pila_saltos)
 print(variable_table.pila_cuadruplos)
-

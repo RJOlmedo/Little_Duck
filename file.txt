@@ -1,0 +1,29 @@
+program MyProgram;
+var
+  number1: int;
+  number2: float;
+  x: int;
+  y: float;
+  z: int;
+  a:int;
+  b:int;
+
+
+main
+{
+
+  x = 10+2;
+  y = 5.5*3;
+  z = x;
+  if (a > 5) {
+    print(a);
+  }else{
+    print("a");
+  };
+  do{
+    print(x);
+  }while(x);
+
+}
+
+end
