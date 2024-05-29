@@ -224,10 +224,26 @@ class VariableTable:
         false_jump = self.pila_saltos.pop()
         self.pila_cuadruplos[false_jump][-1] = len(self.pila_cuadruplos)
 
-    def patch_else(self):
-        end_jump = self.pila_saltos.pop()
-        self.pila_cuadruplos[end_jump][-1] = len(self.pila_cuadruplos)
+    # def patch_else(self):
+    #     end_jump = self.pila_saltos.pop()
+    #     self.pila_cuadruplos[end_jump][-1] = len(self.pila_cuadruplos)
 
-    def patch_if(self):
-        false_jump = self.pila_saltos.pop()
-        self.pila_cuadruplos[false_jump][-1] = len(self.pila_cuadruplos)
+    # def patch_if(self):
+    #     false_jump = self.pila_saltos.pop()
+    #     self.pila_cuadruplos[false_jump][-1] = len(self.pila_cuadruplos)
+
+    def start_while(self):
+        # Guarda la posición del inicio del ciclo
+        self.pila_saltos.append(len(self.pila_cuadruplos))
+
+    def add_gotov_while(self):
+        condition = self.pila_operandos.pop()
+        condition_type = self.pila_tipos.pop()
+        
+        if condition_type != 'bool':
+            raise ValueError("Condition for while statement must be a boolean")
+        
+        # Agrega el cuádruplo GOTOF para evaluar la condición del while
+        direccion_salto = self.pila_saltos.pop()
+        self.pila_cuadruplos.append(['GOTOV', condition, None, direccion_salto])
+        

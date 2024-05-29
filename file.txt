@@ -15,14 +15,16 @@ main
   x = 10+2;
   y = 5.5*3;
   z = x;
+  a = 7;
+
   if (a > 5) {
     print(a);
   }else{
-    print("a");
+    print("ar");
   };
   do{
     print(x);
-  }while(x);
+  }while(x < 7);
 
 }
 

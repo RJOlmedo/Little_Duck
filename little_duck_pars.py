@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 from symbol_table import VariableTable
 from little_duck_lex import tokens
+import pickle
 
 variable_table = VariableTable()
 
@@ -153,8 +154,15 @@ def p_add_operador(p):
     variable_table.append_pila_operador(p[-1])
 
 def p_cycle(p):
-    'cycle : DO body WHILE LPAREN expresion RPAREN SEMICOLON'
-    pass
+    'cycle : DO ciclo_start body WHILE LPAREN expresion RPAREN gotov SEMICOLON'
+
+def p_ciclo_start(p):
+    '''ciclo_start : '''
+    variable_table.start_while()
+
+def p_gotov(p):
+    '''gotov : '''
+    variable_table.add_gotov_while()
 
 def p_condition(p):
     'condition : IF LPAREN expresion RPAREN gotof body else_part SEMICOLON'
@@ -294,3 +302,19 @@ print(variable_table.pila_operadores)
 print(variable_table.pila_tipos)
 print(variable_table.pila_saltos)
 print(variable_table.pila_cuadruplos)
+
+# Save variable_table.pila_cuadruplos to a pkl file
+with open('/home/ricardo/Desktop/Little_Duck/pila_cuadruplos.pkl', 'wb') as file:
+    pickle.dump(variable_table.pila_cuadruplos, file)
+
+
+# Save variable_table.constant_table to a pkl file
+def invert_dict(d):
+    return {v: k for k, v in d.items()}
+
+constant_table = invert_dict(variable_table.constant_table)
+
+
+# Saving the dictionary to a pickle file
+with open('constant_table.pkl', 'wb') as pickle_file:
+    pickle.dump(constant_table, pickle_file)
