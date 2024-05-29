@@ -1,231 +1,167 @@
-import os
 import sys
+import os
 import pytest
+from io import StringIO
+from contextlib import redirect_stdout
 
-# Añade la carpeta raíz (un nivel arriba) al `sys.path`
+# Añadir el directorio raíz del proyecto al path de Python
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from little_duck_pars import parser, ASTNode
+from little_duck_pars import parser, variable_table
 
-def assert_ast_node(node, expected_type, expected_value=None, expected_children=None):
-    assert node.type == expected_type
-    assert node.value == expected_value
-    if expected_children is not None:
-        assert len(node.children) == len(expected_children)
-        for child, expected_child in zip(node.children, expected_children):
-            assert_ast_node(child, expected_child.type, expected_child.value, expected_child.children)
+def parse_input(input_data):
+    variable_table.__init__()  # Reiniciar la tabla de variables
+    parser.parse(input_data)
 
-def test_basic_program():
+def capture_output(function):
+    f = StringIO()
+    with redirect_stdout(f):
+        function()
+    return f.getvalue().strip()
+
+def test_variable_declaration():
+    data = '''    
+    program PanchoProgram;
+    var
+      pancho_age: int;
+      pancho_weight: float;
+    main { }
+    end'''
+    
+    parse_input(data)
+
+    expected_operandos = "[]"
+    expected_operadores = "[]"
+    expected_tipos = "[]"
+    expected_saltos = "[]"
+    expected_cuadruplos = "[]"
+
+    actual_operandos = capture_output(lambda: print(variable_table.pila_operandos))
+    actual_operadores = capture_output(lambda: print(variable_table.pila_operadores))
+    actual_tipos = capture_output(lambda: print(variable_table.pila_tipos))
+    actual_saltos = capture_output(lambda: print(variable_table.pila_saltos))
+    actual_cuadruplos = capture_output(lambda: print(variable_table.pila_cuadruplos))
+
+    assert actual_operandos == expected_operandos
+    assert actual_operadores == expected_operadores
+    assert actual_tipos == expected_tipos
+    assert actual_saltos == expected_saltos
+    assert actual_cuadruplos == expected_cuadruplos
+
+
+def test_arithmetic_operations():
     data = '''
-    program ejemplo;
-    var x : int;
+    program PanchoProgram;
+    var
+      pancho_age: int;
+      pancho_weight: float;
     main {
-        print("Hola Mundo");
+      pancho_age = 4 + 4;
+      pancho_weight = pancho_age * 2.2;
     }
-    end;
+    end
     '''
-    result = parser.parse(data)
+    parse_input(data)
 
-    expected_ast = ASTNode('Programa', [
-        ASTNode('Vars', [
-            ASTNode('ListaVars', [
-                ASTNode('ID', value='x')
-            ]),
-            ASTNode('TYPE', value='int')
-        ]),
-        ASTNode('Funcoes', value='epsilon'),
-        ASTNode('ID', value='main'),
-        ASTNode('Body', [
-            ASTNode('Statements', [
-                ASTNode('Print', [
-                    ASTNode('CTE', value='Hola Mundo')
-                ]),
-                ASTNode('Statements', value='epsilon')
-            ])
-        ]),
-        ASTNode('ID', value='end')
-    ])
+    expected_operandos = "[]"
+    expected_operadores = "[]"
+    expected_tipos = "[]"
+    expected_saltos = "[]"
+    expected_cuadruplos = "[['+', 501, 501, 200], ['=', 200, None, 0], ['*', 0, 601, 300], ['=', 300, None, 100]]"
 
-    assert_ast_node(result, expected_ast.type, expected_ast.value, expected_ast.children)
+    actual_operandos = capture_output(lambda: print(variable_table.pila_operandos))
+    actual_operadores = capture_output(lambda: print(variable_table.pila_operadores))
+    actual_tipos = capture_output(lambda: print(variable_table.pila_tipos))
+    actual_saltos = capture_output(lambda: print(variable_table.pila_saltos))
+    actual_cuadruplos = capture_output(lambda: print(variable_table.pila_cuadruplos))
 
-def test_functions_and_calls():
+    assert actual_operandos == expected_operandos
+    assert actual_operadores == expected_operadores
+    assert actual_tipos == expected_tipos
+    assert actual_saltos == expected_saltos
+    assert actual_cuadruplos == expected_cuadruplos
+
+def test_if_statement():
     data = '''
-    program ejemplo;
-    var x : int;
-    void ladrar(int x) {
-        print("Pancho dice Arrr");
+    program MyProgram;
+    var
+        pancho_age: int;
+        pancho_weight: float;
+
+    main
+    {
+        pancho_age = 8;
+
+        if (pancho_age > 10) {
+            print("Viejo");
+        }else{
+            print("ar");
+        };
     }
-    main {
-        ladrar(10);
-    }
-    end;
+
+    end
     '''
-    result = parser.parse(data)
+    parse_input(data)
 
-    expected_ast = ASTNode('Programa', [
-        ASTNode('Vars', [
-            ASTNode('ListaVars', [
-                ASTNode('ID', value='x')
-            ]),
-            ASTNode('TYPE', value='int')
-        ]),
-        ASTNode('Funcoes', [
-            ASTNode('Funcion', [
-                ASTNode('ID', value='ladrar'),
-                ASTNode('Parametros', [
-                    ASTNode('ID', value='x', children=[ASTNode('TYPE', value='int')])
-                ]),
-                ASTNode('Body', [
-                    ASTNode('Statements', [
-                        ASTNode('Print', [
-                            ASTNode('CTE', value='Pancho dice Arrr')
-                        ]),
-                        ASTNode('Statements', value='epsilon')
-                    ])
-                ])
-            ]),
-            ASTNode('Funcoes', value='epsilon')
-        ]),
-        ASTNode('ID', value='main'),
-        ASTNode('Body', [
-            ASTNode('Statements', [
-                ASTNode('F_Call', [
-                    ASTNode('ID', value='ladrar'),
-                    ASTNode('Expresiones', [
-                        ASTNode('CTE', value=10)
-                    ])
-                ]),
-                ASTNode('Statements', value='epsilon')
-            ])
-        ]),
-        ASTNode('ID', value='end')
-    ])
+    expected_operandos = "[]"
+    expected_operadores = "[]"
+    expected_tipos = "[]"
+    expected_saltos = "[]"
+    expected_cuadruplos = "[['=', 501, None, 0], ['>', 0, 502, 401], ['GOTOF', 401, None, 5], ['print', 'Viejo', None, None], ['GOTO', None, None, 6], ['print', 'ar', None, None]]"
 
-    assert_ast_node(result, expected_ast.type, expected_ast.value, expected_ast.children)
+    actual_operandos = capture_output(lambda: print(variable_table.pila_operandos))
+    actual_operadores = capture_output(lambda: print(variable_table.pila_operadores))
+    actual_tipos = capture_output(lambda: print(variable_table.pila_tipos))
+    actual_saltos = capture_output(lambda: print(variable_table.pila_saltos))
+    actual_cuadruplos = capture_output(lambda: print(variable_table.pila_cuadruplos))
 
-def test_loops():
+    assert actual_operandos == expected_operandos
+    assert actual_operadores == expected_operadores
+    assert actual_tipos == expected_tipos
+    assert actual_saltos == expected_saltos
+    assert actual_cuadruplos == expected_cuadruplos
+
+
+def test_while_loop():
     data = '''
-    program ejemplo;
-    var x : int;
-    main {
-        while (x < 10) {
-            print("Esto es un While Loop");
-        }
+    program PanchoProgram;
+    var
+      pancho_age: int;
+      pancho_weight: float;
+      x: int;
 
-        do {
-            print("Esto es un do while");
-        } while (x < 10);
+    main {
+        pancho_age = 8;
+        x = 5;
+
+        if (pancho_age > 10) {
+            print("Viejo");
+        }else{
+            print("ar");
+        };
+      do {
+        print("Pancho ladra");
+        x = x - 1;
+      } while (x > 0);
     }
-    end;
+    end
     '''
-    result = parser.parse(data)
+    parse_input(data)
 
-    expected_ast = ASTNode('Programa', [
-        ASTNode('Vars', [
-            ASTNode('ListaVars', [
-                ASTNode('ID', value='x')
-            ]),
-            ASTNode('TYPE', value='int')
-        ]),
-        ASTNode('Funcoes', value='epsilon'),
-        ASTNode('ID', value='main'),
-        ASTNode('Body', [
-            ASTNode('Statements', [
-                ASTNode('CYCLE', [
-                    ASTNode('Expresion', [
-                        ASTNode('ID', value='x'),
-                        ASTNode('Operator', value='<'),
-                        ASTNode('CTE', value=10)
-                    ]),
-                    ASTNode('Body', [
-                        ASTNode('Statements', [
-                            ASTNode('Print', [
-                                ASTNode('CTE', value='Esto es un While Loop')
-                            ]),
-                            ASTNode('Statements', value='epsilon')
-                        ])
-                    ])
-                ]),
-                ASTNode('Statements', [
-                    ASTNode('CYCLE', [
-                        ASTNode('Body', [
-                            ASTNode('Statements', [
-                                ASTNode('Print', [
-                                    ASTNode('CTE', value='Esto es un do while')
-                                ]),
-                                ASTNode('Statements', value='epsilon')
-                            ])
-                        ]),
-                        ASTNode('Expresion', [
-                            ASTNode('ID', value='x'),
-                            ASTNode('Operator', value='<'),
-                            ASTNode('CTE', value=10)
-                        ])
-                    ]),
-                    ASTNode('Statements', value='epsilon')
-                ])
-            ])
-        ]),
-        ASTNode('ID', value='end')
-    ])
+    expected_operandos = "[]"
+    expected_operadores = "[]"
+    expected_tipos = "[]"
+    expected_saltos = "[]"
+    expected_cuadruplos = "[['=', 501, None, 0], ['=', 502, None, 1], ['>', 0, 503, 401], ['GOTOF', 401, None, 6], ['print', 'Viejo', None, None], ['GOTO', None, None, 7], ['print', 'ar', None, None], ['print', 'Pancho ladra', None, None], ['-', 1, 504, 200], ['=', 200, None, 1], ['>', 1, 505, 402], ['GOTOV', 402, None, 7]]"
 
-    assert_ast_node(result, expected_ast.type, expected_ast.value, expected_ast.children)
+    actual_operandos = capture_output(lambda: print(variable_table.pila_operandos))
+    actual_operadores = capture_output(lambda: print(variable_table.pila_operadores))
+    actual_tipos = capture_output(lambda: print(variable_table.pila_tipos))
+    actual_saltos = capture_output(lambda: print(variable_table.pila_saltos))
+    actual_cuadruplos = capture_output(lambda: print(variable_table.pila_cuadruplos))
 
-def test_conditionals():
-    data = '''
-    program ejemplo;
-    var x : int;
-    main {
-        if (x != 5) {
-            print("No da 5");
-        } else {
-            print("Da 5");
-        }
-    end;
-    '''
-    result = parser.parse(data)
-
-    expected_ast = ASTNode('Programa', [
-        ASTNode('Vars', [
-            ASTNode('ListaVars', [
-                ASTNode('ID', value='x')
-            ]),
-            ASTNode('TYPE', value='int')
-        ]),
-        ASTNode('Funcoes', value='epsilon'),
-        ASTNode('ID', value='main'),
-        ASTNode('Body', [
-            ASTNode('Statements', [
-                ASTNode('CONDITION', [
-                    ASTNode('Expresion', [
-                        ASTNode('ID', value='x'),
-                        ASTNode('Operator', value='!='),
-                        ASTNode('CTE', value=5)
-                    ]),
-                    ASTNode('Body', [
-                        ASTNode('Statements', [
-                            ASTNode('Print', [
-                                ASTNode('CTE', value='No da 5')
-                            ]),
-                            ASTNode('Statements', value='epsilon')
-                        ])
-                    ]),
-                    ASTNode('Body', [
-                        ASTNode('Statements', [
-                            ASTNode('Print', [
-                                ASTNode('CTE', value='Da 5')
-                            ]),
-                            ASTNode('Statements', value='epsilon')
-                        ])
-                    ])
-                ]),
-                ASTNode('Statements', value='epsilon')
-            ])
-        ]),
-        ASTNode('ID', value='end')
-    ])
-
-    assert_ast_node(result, expected_ast.type, expected_ast.value, expected_ast.children)
-
-if __name__ == '__main__':
-    pytest.main([__file__])
+    assert actual_operandos == expected_operandos
+    assert actual_operadores == expected_operadores
+    assert actual_tipos == expected_tipos
+    assert actual_saltos == expected_saltos
+    assert actual_cuadruplos == expected_cuadruplos

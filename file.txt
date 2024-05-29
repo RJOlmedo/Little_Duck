@@ -1,31 +1,22 @@
-program MyProgram;
+program PanchoProgram;
 var
-  number1: int;
-  number2: float;
+  pancho_age: int;
+  pancho_weight: float;
   x: int;
-  y: float;
-  z: int;
-  a:int;
-  b:int;
 
+main {
+  pancho_age = 8;
+  x = 5;
 
-main
-{
-
-  x = 10+2;
-  y = 5.5*3;
-  z = x;
-  a = 7;
-
-  if (a > 5) {
-    print(a);
+  if (pancho_age > 10) {
+    print("Viejo");
   }else{
     print("ar");
   };
+
   do{
-    print(x);
-  }while(x < 7);
-
+    print("Pancho ladra");
+    x = x - 1;
+  } while (x > 0);
 }
-
 end

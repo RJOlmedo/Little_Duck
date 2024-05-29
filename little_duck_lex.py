@@ -1,12 +1,12 @@
 import ply.lex as lex
 
-# List of token names
+# Lista de nombres de tokens
 tokens = [
     'ID', 'CTE_STRING', 'CTE_INT', 'CTE_FLOAT', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'EQUALS',
     'LPAREN', 'RPAREN', 'SEMICOLON', 'COLON', 'COMMA', 'LBRACE', 'RBRACE', 'LT', 'GT', 'NE'
 ]
 
-# Reserved words
+# Palabras reservadas
 reserved = {
     'program': 'PROGRAM',
     'main': 'MAIN',
@@ -24,7 +24,7 @@ reserved = {
 
 tokens = tokens + list(reserved.values())
 
-# Regular expressions for simple tokens
+# Expresiones regulares para tokens simples
 t_PLUS = r'\+'
 t_MINUS = r'-'
 t_TIMES = r'\*'
@@ -41,7 +41,7 @@ t_LT = r'<'
 t_GT = r'>'
 t_NE = r'!='
 
-# Regular expression rules with some action code
+# Reglas de expresiones regulares con código de acción
 def t_CTE_FLOAT(t):
     r'\d+\.\d+'
     t.value = float(t.value)
@@ -54,31 +54,31 @@ def t_CTE_INT(t):
 
 def t_CTE_STRING(t):
     r'("[^\n"]*")|(\'[^\n\']*\')'
-    t.value = t.value[1:-1]  # Remove the quotes
+    t.value = t.value[1:-1]  # Eliminar las comillas
     return t
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
-    t.type = reserved.get(t.value, 'ID')  # Check for reserved words
+    t.type = reserved.get(t.value, 'ID')  # Verificar palabras reservadas
     return t
 
-# A string containing ignored characters (spaces and tabs)
+# Una cadena que contiene caracteres ignorados (espacios y tabulaciones)
 t_ignore = ' \t'
 
-# Define a rule for new lines to track line numbers
+# Definir una regla para nuevas líneas para rastrear los números de línea
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
-# Error handling rule
+# Regla de manejo de errores
 def t_error(t):
-    print(f"Illegal character '{t.value[0]}'")
+    print(f"Caracter ilegal '{t.value[0]}'")
     t.lexer.skip(1)
 
-# Build the lexer
+# Construir el lexer
 lexer = lex.lex()
 
-# Test it out
+# Probarlo
 if __name__ == "__main__":
     data = '''
     program test;
